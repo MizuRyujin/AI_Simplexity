@@ -8,4 +8,8 @@ public interface IHeuristic
 
     // Maximum score for a win
     float WinScore { get; }
+
+    string Name { get; }
+
+    float Heuristic(Board board, PColor color);
 }
