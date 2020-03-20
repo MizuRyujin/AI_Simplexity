@@ -39,19 +39,10 @@ public class BigBrainAIThinker : AbstractThinker
     /// <param name="str"></param>
     public override void Setup(string str)
     {
-        availableHeuristics = new List<IHeuristic>();
-        availableHeuristics.Add(new Heuristic1()); 
-
         alpha = byte.MinValue;
         beta = byte.MaxValue;
 
-        foreach(IHeuristic heuristic in availableHeuristics)
-        {
-            if(str.Contains(heuristic.Name))
-            {
-                selectedHeuristic = heuristic;
-            }
-        }
+        SetupHeuristic(str);
 
         if (!byte.TryParse(str, out maxDepth))
         {
@@ -59,10 +50,30 @@ public class BigBrainAIThinker : AbstractThinker
         }
     }
 
-    //public override FutureMove Think(Board board, CancellationToken ct)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    /// <summary>
+    /// Assigns wanted Heuristic to be used 
+    /// </summary>
+    /// <param name="str"> Accepts param with name of wanted heuristic </param>
+    private void SetupHeuristic(string str)
+    {
+        availableHeuristics = new List<IHeuristic>();
+
+        availableHeuristics.Add(new Heuristic1());
+
+        foreach (IHeuristic heuristic in availableHeuristics)
+        {
+            if (str.Contains(heuristic.Name))
+            {
+                selectedHeuristic = heuristic;
+            }
+        }
+
+        // Assigns default heuristic
+        if (selectedHeuristic == default)
+        {
+            selectedHeuristic = new Heuristic1();
+        }
+    }
 
     private (PShape shape, int col) ABNegaMAx(CancellationToken ct,
             PShape pShape, byte depth)
@@ -76,8 +87,6 @@ public class BigBrainAIThinker : AbstractThinker
 
         return (pShape, 0);
     }
-
-    // Maximum depth
 
     // The ToString() method, optional override
     public override string ToString()
