@@ -3,13 +3,12 @@ using ColorShapeLinks.Common;
 
 public class BigBrainHeuristic1 : IBigBrainHeuristic
 {
-    public float WinScore => throw new NotImplementedException();
-
     public string Name { get => "ShapeHeuristic"; }
+    public float WinScore => float.PositiveInfinity;
 
-    public float Evaluate(Board board)
+    public float Evaluate(Board board, PColor player)
     {
-        throw new NotImplementedException();
+       return Heuristic(board, player) - Heuristic(board, player.Other());
     }
 
     // Heuristic function
