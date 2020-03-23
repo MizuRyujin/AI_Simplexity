@@ -1,7 +1,7 @@
 ﻿using ColorShapeLinks.Common;
 using ColorShapeLinks.Common.AI;
 
-public interface IHeuristic
+public interface IBigBrainHeuristic
 {
     // Get a board evaluation from the perspective of the given player
     float Evaluate(Board board);

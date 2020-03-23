@@ -1,7 +1,7 @@
 ﻿using System;
 using ColorShapeLinks.Common;
 
-public class Heuristic1 : IHeuristic
+public class BigBrainHeuristic1 : IBigBrainHeuristic
 {
     public float WinScore => throw new NotImplementedException();
 
