@@ -80,7 +80,8 @@ public class BigBrainAIThinker : AbstractThinker
 
         // Invoke ABNegamax, starting with zero depth
         (FutureMove move, float score) decision = ABNegaMAx(
-            board, ct, board.Turn, board.Turn, 0, byte.MinValue, byte.MaxValue);
+            board, ct, board.Turn, board.Turn, 0, 
+            float.NegativeInfinity, float.PositiveInfinity);
 
         OnThinkingInfo(
             $"Heuristic: {selectedHeuristic.Name}" +
