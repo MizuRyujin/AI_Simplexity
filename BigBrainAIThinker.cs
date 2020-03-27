@@ -80,12 +80,11 @@ public class BigBrainAIThinker : AbstractThinker
 
         // Invoke ABNegamax, starting with zero depth
         (FutureMove move, float score) decision = ABNegaMAx(
-            board, ct, board.Turn, board.Turn, 0, 
-            float.NegativeInfinity, float.PositiveInfinity);
+            board, ct, board.Turn, board.Turn, 0, float.NegativeInfinity, float.PositiveInfinity);
 
         OnThinkingInfo(
             $"Heuristic: {selectedHeuristic.Name}" +
-            $" Shape: {board.Turn} " +
+            $" Color: {board.Turn} " +
             $"numEvals: {numEvals}");
 
         // Return best move
@@ -111,24 +110,20 @@ public class BigBrainAIThinker : AbstractThinker
             // ...set a "no move" and skip the remaining part of the algorithm
             selectedMove = (FutureMove.NoMove, float.NaN);
         }
-        
         // Otherwise, if it's a final board, return the appropriate evaluation
         else if ((winner = board.CheckWinner()) != Winner.None)
         {
-            if (winner.ToPColor() == player)
+            if((winner = board.CheckWinner()) == Winner.Draw)
             {
-                // AI player wins, return highest possible score
-                selectedMove = (FutureMove.NoMove, -selectedHeuristic.WinScore);
+                selectedMove = (FutureMove.NoMove, 0f);
             }
-            else if (winner.ToPColor() == player.Other())
+            else if (winner.ToPColor() == player)
             {
-                // Opponent wins, return lowest possible score
                 selectedMove = (FutureMove.NoMove, selectedHeuristic.WinScore);
             }
             else
             {
-                // A draw, return zero
-                selectedMove = (FutureMove.NoMove, 0f);
+                selectedMove = (FutureMove.NoMove, -selectedHeuristic.WinScore);
             }
         }
         // If we're at maximum depth and don't have a final board, use
@@ -144,14 +139,7 @@ public class BigBrainAIThinker : AbstractThinker
             // for each one of them, maximizing depending on who's
             // turn it is
 
-            // Initialize the selected move...
-            selectedMove = turn == player
-                // ...with negative infinity if it's the AI's turn and we're
-                // maximizing (so anything except defeat will be better than this)
-                ? (FutureMove.NoMove, float.NegativeInfinity)
-                // ...or with positive infinity if it's the opponent's turn and we're
-                // minimizing (so anything except victory will be worse than this)
-                : (FutureMove.NoMove, float.PositiveInfinity);
+            selectedMove = (FutureMove.NoMove, float.NegativeInfinity);
 
             // Test each column
             for (int i = 0; i < Cols; i++)

@@ -8,7 +8,7 @@ public class BigBrainHeuristic1 : IBigBrainHeuristic
 
     public float Evaluate(Board board, PColor player)
     {
-       return Heuristic(board, player) - Heuristic(board, player.Other());
+        return Heuristic(board, player) - Heuristic(board, player.Other());
     }
 
     // Heuristic function
@@ -42,22 +42,34 @@ public class BigBrainHeuristic1 : IBigBrainHeuristic
                 // Is there any piece there?
                 if (piece.HasValue)
                 {
-                    // If the piece is of our color, increment the
-                    // heuristic inversely to the distance from the center
-                    if (piece.Value.color == color)
-                        h += maxPoints - Dist(centerRow, centerCol, i, j);
-                    // Otherwise decrement the heuristic value using the
-                    // same criteria
-                    else
-                        h -= maxPoints - Dist(centerRow, centerCol, i, j);
                     // If the piece is of our shape, increment the
                     // heuristic inversely to the distance from the center
                     if (piece.Value.shape == color.Shape())
+                    {
                         h += maxPoints - Dist(centerRow, centerCol, i, j);
+                        break;
+                    }
+
                     // Otherwise decrement the heuristic value using the
                     // same criteria
                     else
+                    {
                         h -= maxPoints - Dist(centerRow, centerCol, i, j);
+                    }
+
+                    // If the piece is of our color, increment the
+                    // heuristic inversely to the distance from the center
+                    if (piece.Value.color == color)
+                    {
+                        h += maxPoints - Dist(centerRow, centerCol, i, j);
+                        break;
+                    }
+                    // Otherwise decrement the heuristic value using the
+                    // same criteria
+                    else
+                    {
+                        h -= maxPoints - Dist(centerRow, centerCol, i, j);
+                    }
                 }
             }
         }
