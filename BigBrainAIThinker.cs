@@ -34,9 +34,11 @@ public class BigBrainAIThinker : AbstractThinker
     /// <summary>
     /// Method to setup values and heuristics
     /// </summary>
-    /// <param name="str"></param>
+    /// <param name="str"> String to be splitted and used to check for 
+    /// AI parameters such as heuristic and max depth value. </param>
     public override void Setup(string str)
     {
+        // TODO: INSERT STRING SPLIT() HERE
         if (!byte.TryParse(str, out maxDepth))
         {
             maxDepth = 2;
