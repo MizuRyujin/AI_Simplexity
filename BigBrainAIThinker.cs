@@ -111,18 +111,19 @@ public class BigBrainAIThinker : AbstractThinker
             // ...set a "no move" and skip the remaining part of the algorithm
             selectedMove = (FutureMove.NoMove, float.NaN);
         }
+        
         // Otherwise, if it's a final board, return the appropriate evaluation
         else if ((winner = board.CheckWinner()) != Winner.None)
         {
             if (winner.ToPColor() == player)
             {
                 // AI player wins, return highest possible score
-                selectedMove = (FutureMove.NoMove, selectedHeuristic.WinScore);
+                selectedMove = (FutureMove.NoMove, -selectedHeuristic.WinScore);
             }
             else if (winner.ToPColor() == player.Other())
             {
                 // Opponent wins, return lowest possible score
-                selectedMove = (FutureMove.NoMove, -selectedHeuristic.WinScore);
+                selectedMove = (FutureMove.NoMove, selectedHeuristic.WinScore);
             }
             else
             {
