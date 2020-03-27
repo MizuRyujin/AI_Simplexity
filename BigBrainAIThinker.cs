@@ -38,30 +38,25 @@ public class BigBrainAIThinker : AbstractThinker
     /// AI parameters such as heuristic and max depth value. </param>
     public override void Setup(string str)
     {
-        // TODO: INSERT STRING SPLIT() HERE
-        if (!byte.TryParse(str, out maxDepth))
-        {
-            maxDepth = 2;
-        }
+        string[] strs = str.Split(',');
 
-        SetupHeuristic(str);
-    }
-
-    /// <summary>
-    /// Assigns wanted Heuristic to be used 
-    /// </summary>
-    /// <param name="str"> Accepts param with name of wanted heuristic </param>
-    private void SetupHeuristic(string str)
-    {
+        // Instantiate collection of heuristics
         availableHeuristics = new List<IBigBrainHeuristic>();
 
+        // Add heuristics to collection
         availableHeuristics.Add(new BigBrainAI_Heuristic1());
 
-        foreach (IBigBrainHeuristic heuristic in availableHeuristics)
+        // Accepts a chopped up setence to find depth and heuristics
+        for (int i = 0; i < strs.Length; i++)
         {
-            if (str.Contains(heuristic.Name))
+            byte.TryParse(strs[i], out maxDepth);
+
+            foreach (IBigBrainHeuristic heuristic in availableHeuristics)
             {
-                selectedHeuristic = heuristic;
+                if (strs[i].Contains(heuristic.Name))
+                {
+                    selectedHeuristic = heuristic;
+                }
             }
         }
 
@@ -69,6 +64,12 @@ public class BigBrainAIThinker : AbstractThinker
         if (selectedHeuristic == null)
         {
             selectedHeuristic = new BigBrainAI_Heuristic1();
+        }
+
+        // Assigns maxDepth
+        if (maxDepth == default)
+        {
+            maxDepth = 2;
         }
     }
 
@@ -122,7 +123,7 @@ public class BigBrainAIThinker : AbstractThinker
         Board board, CancellationToken ct, int depth, float alpha, float beta)
     {
         numEvals++;
-        
+
         (FutureMove move, float score) selectedMove;
 
         Winner winner;
