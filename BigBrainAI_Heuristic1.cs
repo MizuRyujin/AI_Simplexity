@@ -1,7 +1,7 @@
 ﻿using System;
 using ColorShapeLinks.Common;
 
-public class BigBrainHeuristic1 : IBigBrainHeuristic
+public class BigBrainAI_Heuristic1 : IBigBrainHeuristic
 {
     public string Name { get => "ShapeHeuristic"; }
     public float WinScore => float.PositiveInfinity;
@@ -42,28 +42,19 @@ public class BigBrainHeuristic1 : IBigBrainHeuristic
                 // Is there any piece there?
                 if (piece.HasValue)
                 {
-                    // If the piece is of our shape, increment the
-                    // heuristic inversely to the distance from the center
+                    // // If the piece is of our shape, increment the
+                    // // heuristic inversely to the distance from the center
                     if (piece.Value.shape == color.Shape())
                     {
                         h += maxPoints - Dist(centerRow, centerCol, i, j);
-                        break;
+
                     }
 
-                    // Otherwise decrement the heuristic value using the
-                    // same criteria
-                    else
-                    {
-                        h -= maxPoints - Dist(centerRow, centerCol, i, j);
-                    }
-
-                    // If the piece is of our color, increment the
-                    // heuristic inversely to the distance from the center
-                    if (piece.Value.color == color)
+                    if (color.FriendOf(piece.Value))
                     {
                         h += maxPoints - Dist(centerRow, centerCol, i, j);
-                        break;
                     }
+
                     // Otherwise decrement the heuristic value using the
                     // same criteria
                     else

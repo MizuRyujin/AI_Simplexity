@@ -50,7 +50,7 @@ public class BigBrainAIThinker : AbstractThinker
     {
         availableHeuristics = new List<IBigBrainHeuristic>();
 
-        availableHeuristics.Add(new BigBrainHeuristic1());
+        availableHeuristics.Add(new BigBrainAI_Heuristic1());
 
         foreach (IBigBrainHeuristic heuristic in availableHeuristics)
         {
@@ -61,9 +61,9 @@ public class BigBrainAIThinker : AbstractThinker
         }
 
         // Assigns default heuristic
-        if (selectedHeuristic == default)
+        if (selectedHeuristic == null)
         {
-            selectedHeuristic = new BigBrainHeuristic1();
+            selectedHeuristic = new BigBrainAI_Heuristic1();
         }
     }
 
@@ -80,7 +80,7 @@ public class BigBrainAIThinker : AbstractThinker
 
         // Invoke ABNegamax, starting with zero depth
         (FutureMove move, float score) decision = ABNegaMAx(
-            board, ct, board.Turn, board.Turn, 0, float.NegativeInfinity, float.PositiveInfinity);
+            board, ct, 0, float.NegativeInfinity, float.PositiveInfinity);
 
         OnThinkingInfo(
             $"Heuristic: {selectedHeuristic.Name}" +
@@ -89,14 +89,14 @@ public class BigBrainAIThinker : AbstractThinker
 
         // Return best move
         return decision.move;
-    }    
-    
+    }
+
     // Implementation of ABNegamax
     private (FutureMove move, float score) ABNegaMAx(
-        Board board, CancellationToken ct,
-        PColor player, PColor turn, int depth, float alpha, float beta)
+        Board board, CancellationToken ct, int depth, float alpha, float beta)
     {
         numEvals++;
+        
 
         // Move to return and its heuristic value
         (FutureMove move, float score) selectedMove;
@@ -113,11 +113,11 @@ public class BigBrainAIThinker : AbstractThinker
         // Otherwise, if it's a final board, return the appropriate evaluation
         else if ((winner = board.CheckWinner()) != Winner.None)
         {
-            if((winner = board.CheckWinner()) == Winner.Draw)
+            if ((winner = board.CheckWinner()) == Winner.Draw)
             {
                 selectedMove = (FutureMove.NoMove, 0f);
             }
-            else if (winner.ToPColor() == player)
+            if (winner.ToPColor() == board.Turn)
             {
                 selectedMove = (FutureMove.NoMove, selectedHeuristic.WinScore);
             }
@@ -131,14 +131,11 @@ public class BigBrainAIThinker : AbstractThinker
         else if (depth == maxDepth)
         {
             selectedMove = (FutureMove.NoMove,
-                selectedHeuristic.Evaluate(board, player));
+                selectedHeuristic.Evaluate(board, board.Turn));
         }
         else // Board not final and depth not at max...
         {
-            //...so let's test all possible moves and recursively call ABNegamax()
-            // for each one of them, maximizing depending on who's
-            // turn it is
-
+            // Initialize the selected move...
             selectedMove = (FutureMove.NoMove, float.NegativeInfinity);
 
             // Test each column
@@ -157,20 +154,19 @@ public class BigBrainAIThinker : AbstractThinker
                     float eval;
 
                     // Skip unavailable shapes
-                    if (board.PieceCount(turn, shape) == 0) continue;
+                    if (board.PieceCount(board.Turn, shape) == 0) continue;
 
                     // Test move, call minimax and undo move
                     board.DoMove(shape, i);
 
-                    eval =- ABNegaMAx(
-                        board, ct, player, turn.Other(), 
-                        depth + 1, -alpha, -beta).score;
+                    eval = -ABNegaMAx(
+                        board, ct,
+                        depth + 1, -beta, -alpha).score;
 
                     board.UndoMove();
 
                     // If we're maximizing, is this the best move so far?
-                    if (turn == player
-                        && eval >= selectedMove.score)
+                    if (eval > selectedMove.score)
                     {
                         alpha = eval;
 
