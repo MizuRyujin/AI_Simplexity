@@ -16,7 +16,6 @@ Source code is in [this](https://github.com/MizuRyujin/AI_Simplexity) public rep
 
 ### Search Algorithm
 
-
 ### Heuristic
 
 ## References
@@ -24,4 +23,4 @@ Source code is in [this](https://github.com/MizuRyujin/AI_Simplexity) public rep
 - Initial AI based on what Professor Nuno Fachada provided and
 ABNegamax based on work done in class for Tick Tack Toe.
 
-- AI for Games, Third Edition (2006).
+- AI for Games, Third Edition (2006)
