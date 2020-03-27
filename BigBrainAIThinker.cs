@@ -22,10 +22,13 @@ public class BigBrainAIThinker : AbstractThinker
     private int numEvals = default;
 
     /// <summary>
-    /// Heuristic for AI behaviour
+    /// Selected heuristic for AI behaviour
     /// </summary>
     private IBigBrainHeuristic selectedHeuristic = default;
 
+    /// <summary>
+    /// Collection of heuristics
+    /// </summary>
     private ICollection<IBigBrainHeuristic> availableHeuristics = default;
 
     /// <summary>
@@ -60,28 +63,40 @@ public class BigBrainAIThinker : AbstractThinker
             }
         }
 
-        // Assigns default heuristic
+        // Assigns default heuristic, in case the string 
         if (selectedHeuristic == null)
         {
             selectedHeuristic = new BigBrainAI_Heuristic1();
         }
     }
 
-    // The ToString() method, optional override
+    /// <summary>
+    /// The ToString() method, optional override
+    /// </summary>
+    /// <returns> AI name plus it's max depth for evaluating possible moves.
+    /// </returns>
     public override string ToString()
     {
         return base.ToString() + "D" + maxDepth;
     }
 
-    // The Think() method (mandatory override) is invoked by the game engine
+    // 
+    /// <summary>
+    /// The Think() method (mandatory override) is invoked by the game engine
+    /// </summary>
+    /// <param name="board"> Game board. </param>
+    /// <param name="ct">Cancelation token. </param>
+    /// <returns></returns>
     public override FutureMove Think(Board board, CancellationToken ct)
     {
+        // Reset number of evaluation on each Think() call, used for debug
         numEvals = 0;
 
-        // Invoke ABNegamax, starting with zero depth
+        // Call ABNegamax()
         (FutureMove move, float score) decision = ABNegaMAx(
             board, ct, 0, float.NegativeInfinity, float.PositiveInfinity);
 
+        // Debug information
         OnThinkingInfo(
             $"Heuristic: {selectedHeuristic.Name}" +
             $" Color: {board.Turn} " +
@@ -91,32 +106,37 @@ public class BigBrainAIThinker : AbstractThinker
         return decision.move;
     }
 
-    // Implementation of ABNegamax
+    /// <summary>
+    /// Negamax with alpha and beta pruning method
+    /// </summary>
+    /// <param name="board"> Board state at the time of method call. </param>
+    /// <param name="ct"> Cancelation Token needed to check if think
+    /// time is up. </param>
+    /// <param name="depth"> Current search depth. </param>
+    /// <param name="alpha"> Alpha value to be used in pruning. </param>
+    /// <param name="beta"> Beta value to be used in pruning. </param>
+    /// <returns> A desired move and a score for that movement. </returns>
     private (FutureMove move, float score) ABNegaMAx(
         Board board, CancellationToken ct, int depth, float alpha, float beta)
     {
         numEvals++;
         
-
-        // Move to return and its heuristic value
         (FutureMove move, float score) selectedMove;
 
-        // Current board state
         Winner winner;
 
-        // If a cancellation request was made...
         if (ct.IsCancellationRequested)
         {
-            // ...set a "no move" and skip the remaining part of the algorithm
             selectedMove = (FutureMove.NoMove, float.NaN);
         }
-        // Otherwise, if it's a final board, return the appropriate evaluation
+
         else if ((winner = board.CheckWinner()) != Winner.None)
         {
             if ((winner = board.CheckWinner()) == Winner.Draw)
             {
                 selectedMove = (FutureMove.NoMove, 0f);
             }
+
             if (winner.ToPColor() == board.Turn)
             {
                 selectedMove = (FutureMove.NoMove, selectedHeuristic.WinScore);
@@ -126,37 +146,28 @@ public class BigBrainAIThinker : AbstractThinker
                 selectedMove = (FutureMove.NoMove, -selectedHeuristic.WinScore);
             }
         }
-        // If we're at maximum depth and don't have a final board, use
-        // the heuristic
+
         else if (depth == maxDepth)
         {
             selectedMove = (FutureMove.NoMove,
                 selectedHeuristic.Evaluate(board, board.Turn));
         }
-        else // Board not final and depth not at max...
+        else
         {
-            // Initialize the selected move...
             selectedMove = (FutureMove.NoMove, float.NegativeInfinity);
 
-            // Test each column
             for (int i = 0; i < Cols; i++)
             {
-                // Skip full columns
                 if (board.IsColumnFull(i)) continue;
 
-                // Test shapes
                 for (int j = 0; j < 2; j++)
                 {
-                    // Get current shape
                     PShape shape = (PShape)j;
 
-                    // Use this variable to keep the current board's score
                     float eval;
 
-                    // Skip unavailable shapes
                     if (board.PieceCount(board.Turn, shape) == 0) continue;
 
-                    // Test move, call minimax and undo move
                     board.DoMove(shape, i);
 
                     eval = -ABNegaMAx(
@@ -165,7 +176,6 @@ public class BigBrainAIThinker : AbstractThinker
 
                     board.UndoMove();
 
-                    // If we're maximizing, is this the best move so far?
                     if (eval > selectedMove.score)
                     {
                         alpha = eval;
