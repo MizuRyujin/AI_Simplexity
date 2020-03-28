@@ -7,10 +7,13 @@ Source code is in [this](https://github.com/MizuRyujin/AI_Simplexity) public rep
 ### *[João Rebelo - a21805230](https://github.com/JBernardoRebelo)*
 
 - Implement Minimax and base heuristic.
+- Idea Guy.
+- Optimization.
 - Report.  
 
 ### *[Miguel Fernández - a21803644](https://github.com/MizuRyujin)*
 
+- Idea Guy.
 - Implement ABNegamax.
 - AI optimization.
 
