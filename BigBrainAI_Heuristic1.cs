@@ -4,11 +4,13 @@ using ColorShapeLinks.Common;
 public class BigBrainAI_Heuristic1 : IBigBrainHeuristic
 {
     public string Name { get => "ShapeHeuristic"; }
+
     public float WinScore => float.PositiveInfinity;
 
     public float Evaluate(Board board, PColor player)
     {
-        return Heuristic(board, player) - Heuristic(board, player.Other());
+        //return Heuristic(board, player) - Heuristic(board, player.Other());
+        return Heuristic(board, player);
     }
 
     // Heuristic function
@@ -26,7 +28,7 @@ public class BigBrainAI_Heuristic1 : IBigBrainHeuristic
         float centerCol = board.cols / 2;
 
         // Maximum points a piece can be awarded when it's at the center
-        float maxPoints = Dist(centerRow, centerCol, 0, 0);
+        float maxPoints = Dist(centerRow, centerCol, 0, 0); // 4.61f
 
         // Current heuristic value
         float h = 0;
@@ -42,15 +44,25 @@ public class BigBrainAI_Heuristic1 : IBigBrainHeuristic
                 // Is there any piece there?
                 if (piece.HasValue)
                 {
+                    if (board[i,j] == null)
+                    {
+
+                        h += maxPoints - Dist(centerRow, centerCol, i, j);
+                    }
+
                     // // If the piece is of our shape, increment the
                     // // heuristic inversely to the distance from the center
                     if (piece.Value.shape == color.Shape())
                     {
-                        h += maxPoints - Dist(centerRow, centerCol, i, j);
-
+                        h += (maxPoints - Dist(centerRow, centerCol, i, j)) * 2;
                     }
 
                     if (color.FriendOf(piece.Value))
+                    {
+                        h += (maxPoints - Dist(centerRow, centerCol, i, j)) * 2;
+                    }
+
+                    if (board.piecesInSequence == 3 && color.FriendOf(piece.Value))
                     {
                         h += maxPoints - Dist(centerRow, centerCol, i, j);
                     }
