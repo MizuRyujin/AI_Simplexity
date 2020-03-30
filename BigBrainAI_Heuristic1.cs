@@ -41,37 +41,72 @@ public class BigBrainAI_Heuristic1 : IBigBrainHeuristic
                 // Get piece in current board position
                 Piece? piece = board[i, j];
 
+                if (!piece.HasValue) continue;
+
                 // Is there any piece there?
                 if (piece.HasValue)
                 {
-                    if (board[i,j] == null)
-                    {
-
-                        h += maxPoints - Dist(centerRow, centerCol, i, j);
-                    }
-
                     // // If the piece is of our shape, increment the
                     // // heuristic inversely to the distance from the center
                     if (piece.Value.shape == color.Shape())
                     {
-                        h += (maxPoints - Dist(centerRow, centerCol, i, j)) * 2;
+                        h += maxPoints - Dist(centerRow, centerCol, i, j);
+                    }
+                    else
+                    {
+                        h -= maxPoints - Dist(centerRow, centerCol, i, j);
                     }
 
                     if (color.FriendOf(piece.Value))
                     {
-                        h += (maxPoints - Dist(centerRow, centerCol, i, j)) * 2;
+                        h += maxPoints - Dist(centerRow, centerCol, i, j);
                     }
-
-                    if (board.piecesInSequence == 3 && color.FriendOf(piece.Value))
+                    else
                     {
                         h += maxPoints - Dist(centerRow, centerCol, i, j);
                     }
 
-                    // Otherwise decrement the heuristic value using the
-                    // same criteria
+                    if (board.piecesInSequence == 3 &&
+                        color.FriendOf(piece.Value))
+                    {
+                        h += maxPoints - Dist(centerRow, centerCol, i, j);
+                    }
                     else
                     {
                         h -= maxPoints - Dist(centerRow, centerCol, i, j);
+                    }
+
+                    if (i > 0 && j > 0)
+                    {
+                        // Check if piece bellow
+                        if (board[i - 1, j].HasValue && i <= 6)
+                        {
+                            if (!board[i - 1, j].Value.Is(color, color.Shape()))
+                            {
+                                h -= maxPoints - Dist(
+                                    centerRow, centerCol, i, j);
+                            }
+                        }
+
+                        // Check piece in collum before
+                        if (board[i, j - 1].HasValue && j <= 7)
+                        {
+                            if (!board[i, j - 1].Value.Is(color, color.Shape()))
+                            {
+                                h -= maxPoints - Dist(
+                                    centerRow, centerCol, i, j);
+                            }
+                        }
+
+                        // Check piece in collum after
+                        if (board[i, j + 1].HasValue && j <= 7)
+                        {
+                            if (!board[i, j + 1].Value.Is(color, color.Shape()))
+                            {
+                                h -= maxPoints - Dist(
+                                    centerRow, centerCol, i, j);
+                            }
+                        }
                     }
                 }
             }
