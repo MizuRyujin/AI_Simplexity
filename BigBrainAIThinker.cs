@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Diagnostics;
 using System.Collections.Generic;
 using ColorShapeLinks.Common;
 using ColorShapeLinks.Common.AI;
@@ -32,7 +33,9 @@ public class BigBrainAIThinker : AbstractThinker
     private ICollection<IBigBrainHeuristic> availableHeuristics = default;
 
     // Create a dictionary or table
-    private Dictionary<float, FutureMove> selectedMoves = default;
+    private SortedDictionary<float, FutureMove> selectedMoves = default;
+
+    private Stopwatch timer = default;
 
     private byte dictResetCounter = default;
 
@@ -51,7 +54,7 @@ public class BigBrainAIThinker : AbstractThinker
         // Add heuristics to collection
         availableHeuristics.Add(new BigBrainAI_Heuristic1());
 
-        // Accepts a chopped up setence to find depth and heuristics
+        // Accepts a chopped up sentence to find depth and heuristics
         for (int i = 0; i < strs.Length; i++)
         {
             byte.TryParse(strs[i], out maxDepth);
@@ -77,7 +80,9 @@ public class BigBrainAIThinker : AbstractThinker
             maxDepth = 2;
         }
 
-        selectedMoves = new Dictionary<float, FutureMove>();
+        selectedMoves = new SortedDictionary<float, FutureMove>();
+
+        timer = new Stopwatch();
     }
 
     /// <summary>
@@ -95,7 +100,7 @@ public class BigBrainAIThinker : AbstractThinker
     /// The Think() method (mandatory override) is invoked by the game engine
     /// </summary>
     /// <param name="board"> Game board. </param>
-    /// <param name="ct"> Cancelation token. </param>
+    /// <param name="ct">Cancelation token. </param>
     /// <returns></returns>
     public override FutureMove Think(Board board, CancellationToken ct)
     {
@@ -103,10 +108,12 @@ public class BigBrainAIThinker : AbstractThinker
         numEvals = 0;
 
         // SortedSet<bestMoves>.Clear();
-        if (dictResetCounter >= 3)
-        {
-            selectedMoves.Clear();
-        }
+        // if (dictResetCounter >= 3)
+        // {
+        //     selectedMoves.Clear();
+        // }
+
+        timer.Restart();
 
         // Call ABNegamax() (Change to ABNegaScout in case dictionary works!)
         (FutureMove move, float score) decision = ABNegaScout(
@@ -143,6 +150,8 @@ public class BigBrainAIThinker : AbstractThinker
 
         (FutureMove move, float score) bestMove;
 
+        float bestScore = float.NegativeInfinity;
+
         Winner winner;
 
         // To check if we're done recursing...
@@ -178,14 +187,14 @@ public class BigBrainAIThinker : AbstractThinker
         else if (depth == maxDepth)
         {
             bestMove = (FutureMove.NoMove,
-                selectedHeuristic.Evaluate(board, board.Turn));
+               selectedHeuristic.Evaluate(board, board.Turn));
         }
 
         // If not done recursing, bubble up values from below
         else
         {
             // Initialize selected move with worst option
-            bestMove = (FutureMove.NoMove, float.NegativeInfinity);
+            bestMove = (FutureMove.NoMove, bestScore);
 
             // Go through each move
             for (int i = 0; i < Cols; i++)
@@ -202,39 +211,39 @@ public class BigBrainAIThinker : AbstractThinker
 
                     board.DoMove(shape, i);
 
-                    if (selectedMoves.ContainsValue(new FutureMove(i, shape)))
-                    {
-                        return bestMove = (FutureMove.NoMove,
-                                            selectedHeuristic.Evaluate(
-                                                board, board.Turn));
-                    }
-
                     // Recurse
                     curScore = -ABNegaMax(
                         board, ct,
-                        depth + 1, -beta, -alpha).score;
+                        depth + 1, -beta, -Math.Max(alpha, bestScore)).score;
 
                     board.UndoMove();
 
                     // Update the best score (alpha value)
+
                     if (curScore > bestMove.score)
                     {
-                        alpha = curScore;
+                        bestScore = curScore;
 
                         // If so, keep it
                         bestMove = (new FutureMove(i, shape), curScore);
 
                         if (!selectedMoves.ContainsKey(curScore))
                         {
-                            selectedMoves.Add(bestMove.score, bestMove.move);
+                            selectedMoves.Add(
+                                curScore, new FutureMove(i, shape));
                         }
 
                         // If we're outside the bounds, 
                         // prune by exiting immediately
-                        if (alpha >= beta)
+                        if (bestScore >= beta)
                         {
                             return bestMove;
                         }
+                    }
+
+                    else if (selectedMoves.ContainsKey(bestScore))
+                    {
+                        bestMove = (selectedMoves[bestScore], bestScore);
                     }
                 }
             }
@@ -252,6 +261,8 @@ public class BigBrainAIThinker : AbstractThinker
 
         (FutureMove move, float score) bestMove;
 
+        float bestScore = float.NegativeInfinity;
+
         Winner winner;
 
         // To check if we're done recursing...
@@ -264,7 +275,7 @@ public class BigBrainAIThinker : AbstractThinker
         // ... if not, we check for winning board states...
         else if ((winner = board.CheckWinner()) != Winner.None)
         {
-            // // ... if it was a draw...
+            // ... if it was a draw...
             if ((winner = board.CheckWinner()) == Winner.Draw)
             {
                 bestMove = (FutureMove.NoMove, 0f);
@@ -286,15 +297,15 @@ public class BigBrainAIThinker : AbstractThinker
         // ... lastly we check if we reached max thinking depth
         else if (depth == maxDepth)
         {
-            bestMove = (FutureMove.NoMove,
-                selectedHeuristic.Evaluate(board, board.Turn));
+            bestMove = (FutureMove.NoMove, selectedHeuristic.Evaluate(
+                board, board.Turn));
         }
 
         // If not done recursing, bubble up values from below
         else
         {
             // Initialize best move with worst option
-            bestMove = (FutureMove.NoMove, float.NegativeInfinity);
+            bestMove = (FutureMove.NoMove, bestScore);
 
             // Keep track of the Test window value
             float adaptiveBeta = beta;
@@ -314,59 +325,57 @@ public class BigBrainAIThinker : AbstractThinker
 
                     board.DoMove(shape, i);
 
-                    if (selectedMoves.ContainsValue(new FutureMove(i, shape)))
-                    {
-                        return bestMove = (new FutureMove(i, shape),
-                                            selectedHeuristic.Evaluate(
-                                                board, board.Turn));
-                    }
-
                     // Recurse
                     curScore = -ABNegaMax(
                         board, ct,
                         depth + 1, -adaptiveBeta,
-                        Math.Max(-alpha, bestMove.score)).score;
+                        -Math.Max(alpha, bestScore)).score;
 
                     board.UndoMove();
 
-                    // Update the best score (alpha value)
+                    // Update the best score (alpha value).
+
                     if (curScore > bestMove.score)
                     {
                         if (adaptiveBeta == beta || depth >= maxDepth - 2)
                         {
-                            alpha = curScore;
-
+                            bestScore = curScore;
                             // If so, keep it
                             bestMove = (new FutureMove(i, shape), curScore);
 
                             if (!selectedMoves.ContainsKey(curScore))
                             {
-                                selectedMoves.Add(bestMove.score, bestMove.move);
+                                selectedMoves.Add(
+                                    bestScore, new FutureMove(i, shape));
                             }
                         }
-
                         else
                         {
                             float negaCurScore = ABNegaScout(
                                 board, ct, depth, -beta,
-                                -curScore).score;
+                                -bestScore).score;
 
-                            alpha = -negaCurScore;
+                            bestScore = -negaCurScore;
                         }
 
                         // If we're outside the bounds, 
                         // prune by exiting immediately
-                        if (alpha >= beta)
+                        if (bestScore >= beta)
                         {
                             return bestMove;
                         }
 
-                        adaptiveBeta = Math.Max(alpha, curScore) + 1;
+                        adaptiveBeta = Math.Max(alpha, bestScore) + 1;
+
+                    }
+
+                    else if (selectedMoves.ContainsKey(bestScore))
+                    {
+                        bestMove = (selectedMoves[bestScore], bestScore);
                     }
                 }
             }
         }
-
         return bestMove;
     }
 }
