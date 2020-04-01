@@ -19,7 +19,26 @@ Source code is in [this](https://github.com/MizuRyujin/AI_Simplexity) public rep
 
 ### Search Algorithm
 
+Our search algorithm is Negamax with Alpha-Beta pruning.
+It's going through every possible play in his own perpective in 
+a restrict number of turns (depth) assigning a score to both 
+the AI and the opponent's plays. The score is determined by 
+conditions (defined in the heuristics) and it's always
+maximized due to the nature of Negamax, the AI picks the 
+"branch" with the best score and makes a move.
+Alpha-Beta pruning "cuts" the "branches" found that can't 
+contain the best results so it ignores them in order to reduce 
+number of actions/searches made by the AI.
+
 ### Heuristic
+
+Our AIThinker is prepared to accept multiple heuristics, so we
+can test different solutions to our problems against each other,
+and so that in the future we can switch heuristics mid-game
+depending on the state of the board.
+
+Our "default" heuristic (...)
+
 
 ## References
 
