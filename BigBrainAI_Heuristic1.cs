@@ -63,7 +63,7 @@ public class BigBrainAI_Heuristic1 : IBigBrainHeuristic
                     }
                     else
                     {
-                        h += maxPoints - Dist(centerRow, centerCol, i, j);
+                        h -= maxPoints - Dist(centerRow, centerCol, i, j);
                     }
 
                     if (board.piecesInSequence == 3 &&
